@@ -1,0 +1,243 @@
+Elemental Analysis of Larval Otoliths from  Murrumbidgee River
+==============================================================
+This is an analysis of elements from Otoliths of Larvae from various sites in the Murrumbidgee River. It uses data from laser ablation mass spectrometry of otoliths extracted from drifting Murray cod larvae in the upper Murrumbidgee River in ACT Australia.
+
+This document is produced with knitr in R studio and is done so in an effort to create reproducible analysis. While the data may not be reproducible in real life because of the vagaries of seasonality etc. research should if possible, be reproducible. Analysis of that research can and should always be completely reproducible.
+
+Ultimately: Need to decide if doing from raw (ie: incorporating math from Les' macro) or using post processed data (which would mean ongoing use of Les' mscro which is MS Excel 2003 only!). 
+
+Things to do
+============
+- despike using mvoutlier()?  
+
+- Remove data < Limit of Detection (lod)  ?
+
+- Table of elemental isotope long names to use to make better headings etc. 
+
+- Remove unwanted elements
+
+- Insert file out with means etc for each otolith region
+
+
+```{r "Set Global Options", echo=FALSE, warning=FALSE,message=FALSE}
+##Firstly Set a few options
+library(knitr)
+options(width=200)
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+
+##Load libraries that will be used.
+library(knitr)
+library(psych)
+library(ggplot2)
+library(corrgram)
+library(plyr)
+library(lubridate)
+library(mvoutlier)
+
+## Read in base Data file
+
+OtoData <- read.csv("C:/Users/s428825/Google Drive/PhD Data Files/Analyses/OtolithChem/Slide A Run 1 raw o.csv")
+
+##Read in the start finsih times and otolith larval identification
+OtoMetaData <- read.csv("C:/Users/s428825/Google Drive/PhD Data Files/Analyses/OtolithChem/OtoMetaData.csv")
+
+##Read in user friendly isotope names for plots.
+IsoNames<- read.csv("C:/Users/s428825/Google Drive/PhD Data Files/Analyses/OtolithChem/IsotopeList.csv")
+```
+
+```{r "Remove some unwanted columns"}
+#Clean up a few spare columns first
+OtoData$X    <- NULL
+OtoData$X.1  <- NULL
+OtoData$X.2  <- NULL
+OtoData$X.3  <- NULL
+OtoData$X.4  <- NULL
+OtoData$X.5  <- NULL
+OtoData$X.6  <- NULL
+OtoData$X.7  <- NULL
+OtoData$Concentrations.in.ppm  <- NULL
+OtoData$Smoothed.Data  <- NULL
+OtoData$Time.1  <- NULL
+OtoData$Time.2  <- NULL
+```
+
+
+```{r, "Calculate Edges and Centre portions to be used"}
+OtoMetaData$width<-OtoMetaData$End-OtoMetaData$Start
+OtoMetaData$coreStart<-OtoMetaData$CentreCore-15
+OtoMetaData$coreEnd<-OtoMetaData$CentreCore+15
+#OtoMetaData$coreWidth<-OtoMetaData$coreEnd-OtoMetaData$coreStart
+OtoMetaData$EndEdge1<-OtoMetaData$Start+20
+OtoMetaData$StartEdge2<-OtoMetaData$End-20
+```
+
+
+```{r, "For Each Otolith Assign Larval ID to Times in Otolith Chemistry Data table and Core, Edge1 or Edge2"}
+
+#Assign Larval ID, and core and edge designations, to each time slice in Otolith Chemistry Data table.
+OtoData$LarvalID      <- 0 #create a 0 variable to store Larval ID in table
+OtoData$OtoPart      <- 0 #create a 0 variable to store Larval ID in table 
+
+for (i in 1:nrow(OtoMetaData)){#For each Otolith range
+  for(j in 1:nrow(OtoData)){#For each time slice
+    if(OtoData[j,1]>OtoMetaData[i,2] & OtoData[j,1]<OtoMetaData[i,6]){#Lookup which Larval ID based on the time slice 
+    OtoData[j,98]<-OtoMetaData[i,1] #Number that time slice with LarvaID
+    }
+    if(OtoData[j,1]>OtoMetaData[i,8] & OtoData[j,1]<OtoMetaData[i,9]){#Name that time slice with Core (Core)
+     OtoData[j,99]<-"Core"  
+    }
+    if(OtoData[j,1]>OtoMetaData[i,2] & OtoData[j,1]<OtoMetaData[i,3]){#Name that time slice with Edge1 (E1)
+     OtoData[j,99]<-"E1"
+    }
+    if(OtoData[j,1]>OtoMetaData[i,5] & OtoData[j,1]<OtoMetaData[i,6]){#Name that time slice with Edge2 (E2)
+     OtoData[j,99]<-"E2"
+    }
+  }
+}
+#Keep OtoData as raw for later if required
+OtoDataRaw<-OtoData
+```
+
+
+```{r, "Remove negatives, background and space between core and edge "}
+
+##Replace all entries less than 0 with 0. This is to correct for the negative values generated after correction for background detection. However, negative values might remain useful at some point for identifying (trueish) means that fall below limits of detection which will help eliminate elements from the analysis (the 'which to ditch' munge.)
+
+OtoData[OtoData < 0] <- 0
+
+#Delete Rows with 0 in Larval Id variable as that is background from Mass spec or at least outside each otolith start and end times.ie: Background between otoliths.
+
+OtoData <-OtoData[!(OtoData[,98]==0),]
+
+#Delete Rows with 0 in Otopart as 0 designate that part of otolith defined as neither core or edge 1 or 2.That is, the part of the otolith that falls between the core and the edge designations, which are based on size. (30 and 20 respectively, see "Calculate some parameters about each Otolith" chunk.) 
+
+#Need to make OtoChem before removng 0 from OtoPart D col for some reason. Plots break. 
+OtoChem<-OtoData
+OtoData <-OtoData[!(OtoData[,99]==0),]
+
+#Test core and edge difference
+fit <- aov(Ba ~ OtoPart, data=OtoData)
+#layout(matrix(c(1,2,3,4),2,2)) # optional layout 
+#plot(fit) # diagnostic plots
+summary(fit) # display Type I ANOVA table
+TukeyHSD(fit) # where fit comes from aov()
+#drop1(fit,~.,test="F") # type III SS and F Tests
+print(model.tables(fit,"means"),digits=3) #report the means and the n per group
+```
+
+Look at Some Plts of Ratios for 5 Elements and Calcium
+======================================================
+```{r "Boxplots for 5 Elements Ratios"}
+boxplot(Sr ~ OtoPart, data=OtoData, ylab="Sr", main="Strontium and the Otolith Region")
+boxplot(Ba ~ OtoPart, data=OtoData, ylab="Ba", main="Barium and the Otolith Region")
+boxplot(Mn ~ OtoPart, data=OtoData, ylab="Mn", main="Manganese and the Otolith Region")
+boxplot(Mg ~ OtoPart, data=OtoData, ylab="Mg", main="Magnesium and the Otolith Region")
+boxplot(K ~ OtoPart, data=OtoData, ylab="K", main="Potassium and the Otolith Region")
+
+boxplot(Sr.Ca ~ OtoPart, data=OtoData, ylab="Sr:Ca", main="Sr:Ca Ratio and the Otolith Region")
+boxplot(Ba.Ca ~ OtoPart, data=OtoData, ylab="Ba:Ca", main="Ba:Ca Ratio and the Otolith Region")
+boxplot(Mn.Ca ~ OtoPart, data=OtoData, ylab="Mn:Ca", main="Mn:Ca Ratio and the Otolith Region")
+boxplot(Mg.Ca ~ OtoPart, data=OtoData, ylab="Mg:Ca", main="Mg:Ca Ratio and the Otolith Region")
+boxplot(K.Ca ~ OtoPart, data=OtoData, ylab="K:Ca", main="K:Ca Ratio and the Otolith Region")
+```
+
+```{r, "Calculate some parameters about each Otolith"}
+BetterMeta<-OtoMetaData #Make new Data frame
+#Calculate Percentage of Otolith portion used for core and edge subsampling.
+BetterMeta$core<-30/(BetterMeta$End-BetterMeta$Start)*100
+BetterMeta$Edge1<-20/(BetterMeta$End-BetterMeta$Start)*100
+BetterMeta$Edge2<-20/(BetterMeta$End-BetterMeta$Start)*100
+
+#Summary of Otoliths by Larva
+#OS<-describeBy(BetterMeta,BetterMeta$LarvalID)
+#OS
+```
+
+```{r, "Select Elements for Each Larva and pull them out. Calculate Summary stats"}
+#OtoChem<-OtoData #Make new dataframe to use.
+
+#Basic Summary Statistics for Each Element
+
+#summary(OtoChem)
+#describe.by(OtoChem)
+#OCID<-describeBy(OtoChem,OtoChem$LarvalID)
+#OCPart<-describeBy(OtoChem,OtoChem$OtoPart)
+
+```
+
+```{r, "Which to Ditch"}
+
+ditch<-describeBy(OtoChem,list(OtoChem$LarvalID,OtoChem$OtoPart),mat=TRUE)
+ditch <- ditch[order(ditch$mean),]
+ditch<-subset(ditch, mean > 1e-07)
+```
+Larvae Included in this Analysis
+================================
+
+```{r, "Output Summary Stats and plots"}
+
+unique(OtoChem$LarvalID)
+
+#Basic Summary Statistics for Each Otolith and Part therof
+
+oc<-describeBy(OtoChem,list(OtoChem$LarvalID,OtoChem$OtoPart),mat=TRUE)
+OcStat<-oc #new df to 
+# Rename variables in oc to be more meaningful
+oc<-rename(oc, replace=c("group1" = "LarvalID"))
+oc<-rename(oc, replace=c("group2" = "OtoPart"))
+oc$element<-rownames(oc)
+oc$element<-gsub(".Ca",":Calcium Ratio",oc$element)
+oc$element<-gsub("[0-9]","",oc$element)
+
+#for (x in 1:nrow(oc)){
+#  if {oc$element==IsoNames[x,2]
+#      oc$element<-IsoNames[x,3]
+#    oc$element<-gsub(IsoNames[x,2],IsoNames[x,3],oc$element)
+#  }
+#} 
+
+
+
+#write.table(oc, file = "octestoutput.csv", append = FALSE, sep=",")
+
+#Now plot for each Variable
+```
+
+{r, "Plot for Each Element"}
+
+for (k in 1:ncol(OtoChem)){#For each element 
+  plot(OtoChem[,1],OtoChem[,k],xlab= "Time (seconds)",ylab=colnames(OtoChem)[k])
+}
+
+
+```{r,"Plot for Each Element with Anova" }
+
+for (k in 3:97){#For each element
+  plot(OtoChem[,1],OtoChem[,k],xlab= "Time (seconds)",ylab=colnames(OtoChem)[k])
+  fit<- aov((OtoData[,k]) ~ OtoPart, data=OtoData)
+  print(colnames(OtoData)[k])
+  print(TukeyHSD(fit))
+}
+
+```
+
+```{r, "Output to a file"}
+
+write.table(OtoChem, file = "testoutput.txt", append = FALSE)
+
+```
+
+Larvae Included in This Analysis
+==================================
+Larvae included in this analysis are: `r unique(OtoChem$LarvalID)`
+
+Elements Included in This Analysis
+==================================
+In this analysis there are `r ncol(OtoChem)` variables in the dataframe. These include Larval ID, time, Otolith Part so there are `r ncol(OtoChem)-3` elements analysed. They include: (`r names(OtoChem)`).
+
+Code Chunks in this Analysis
+============================
+```{r "Include Labels for all code Chunks"}
+all_labels()
+```
+

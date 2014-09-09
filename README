@@ -1,0 +1,8 @@
+LarvalOtolithChemistry
+======================
+
+For data munging and analysis of mass spec and accelerator C and N isotope analysis for larval Murray cod from the Murrumbidgee river. Analysis of delta13C, delta15N, and elements from laser ablation mass spec (Varion) from RSES at ANU.
+
+With luck some of my pretty ordinary elements code might be able to be reused by other facing the deluge of data from the Varion Mass spectrometer. This does not yet start with a raw file but uses a despiked .PRN file that is then somewhat pre-processed via an MSExcel macro which I have not yet got access to the code within. Ideally this R code would take a raw .PRN file and do all the processing after despiking.
+
+CNIsotopes code comes from the accelerator and processes delta13C aND Delta15N AND C: data. It is a little more straightforward.
