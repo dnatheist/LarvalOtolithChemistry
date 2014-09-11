@@ -15,11 +15,11 @@ It should also be remembered that this analysis will ultimately have both elemen
 
 
 ```{r, "Install Packages and Set Global Options", echo=FALSE, warning=FALSE, message=FALSE}
-library(knitr)
-library(sparcl)
-library(ape)
-library(phytools)
-library(psych)
+require(knitr)
+require(sparcl)
+require(ape)
+require(phytools)
+require(psych)
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
 ```
 
@@ -182,10 +182,10 @@ df$nest<-df$distAC-(df$OLEstimateAge-7)*300
 ```{r echo=FALSE, "Base Work including a nest site estimate"}
 
 # install.packages('sparcl')
-library(sparcl)
-library(ape)
-library(phytools)
-library(psych)
+require(sparcl)
+require(ape)
+require(phytools)
+require(psych)
 
 qslAllLarvaInfo <- read.csv("C:/Users/s428825/Google Drive/PhD Data Files/Analyses/CNtrial/qslAllLarvaInfo.csv")
 #Start with base data

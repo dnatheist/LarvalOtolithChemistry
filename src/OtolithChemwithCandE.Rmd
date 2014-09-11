@@ -4,7 +4,7 @@ This is an analysis of elements from Otoliths of Larvae from various sites in th
 
 This document is produced with knitr in R studio and is done so in an effort to create reproducible analysis. While the data may not be reproducible in real life because of the vagaries of seasonality etc. research should if possible, be reproducible. Analysis of that research can and should always be completely reproducible.
 
-Ultimately: Need to decide if doing from raw (ie: incorporating math from Les' macro) or using post processed data (which would mean ongoing use of Les' mscro which is MS Excel 2003 only!). 
+Ultimately: Need to decide if doing from raw (ie: incorporating math from Les' macro) or using post processed data (which would mean ongoing use of Les' macro which is MS Excel 2003 only!). 
 
 Things to do
 ============
@@ -18,7 +18,13 @@ Things to do
 -Remove unwanted elements
 
 - Insert file out with means etc for each otolith region
-
+```{r}
+#The following 2 and 4 lines are needed if knitr is to work with ProjectTemplate.
+require(knitr)
+if (basename(getwd()) == "src") setwd("..") #needed to get knitr to work with project template
+library('ProjectTemplate') #All projectTemplates need this up front
+load.project() #All projectTemplates need this up front
+``` 
 
 ```{r "Set Global Options", echo=FALSE, warning=FALSE,message=FALSE}
 ##Firstly Set a few options

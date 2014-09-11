@@ -21,24 +21,24 @@ Things to do
 
 ```{r "Set Global Options", echo=FALSE, warning=FALSE,message=FALSE}
 ##Firstly Set a few options
-library(knitr)
+require(knitr)
 options(width=200)
 opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
 
 ##Load libraries that will be used.
-library(knitr)
-library(psych)
-library(ggplot2)
-library(corrgram)
-library(plyr)
-library(lubridate)
-library(mvoutlier)
+require(knitr)
+require(psych)
+require(ggplot2)
+require(corrgram)
+require(plyr)
+require(lubridate)
+require(mvoutlier)
 
 ## Read in base Data file
 
 OtoData <- read.csv("C:/Users/s428825/Google Drive/PhD Data Files/Analyses/OtolithChem/Slide A Run 1 raw o.csv")
 
-##Read in the start finsih times and otolith larval identification
+##Read in the start finish times and otolith larval identification
 OtoMetaData <- read.csv("C:/Users/s428825/Google Drive/PhD Data Files/Analyses/OtolithChem/OtoMetaData.csv")
 
 ##Read in user friendly isotope names for plots.
