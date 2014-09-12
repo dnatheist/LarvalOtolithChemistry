@@ -13,3 +13,5 @@ AllOtoData <-AllOtoData[!(AllOtoData[,110]==0),]
 #Remove the Smoothed Data Block in middle of DF
 AllOtoData<-AllOtoData[,c(-34:-77)]
 
+#Make LarvalID a factor as we are not using it as a number
+AllOtoData$LarvalID<-as.factor(AllOtoData$LarvalID)

@@ -17,6 +17,7 @@ datafiList<-dir("data", recursive = FALSE, pattern="^[A-H]",full.names = TRUE)
 datafiDF<- lapply(datafiList, read.csv) #load all those files.
 names(datafiDF) <- gsub(".*/(.*)\\..*", "\\1", datafiList)
 
+
 AllOtoMetaData<-data.frame()
 
 AllOtoData<-data.frame()
@@ -27,12 +28,19 @@ for (i in 1:length(datafiList)){
   OtoMetaData$note<-NULL #remove note field if there
   
   #```{r, "Calculate Edges and Centre portions to be used"}
+  # Calculate Percentage of Otolith portion used for core and edge subsampling.
+  #OtoMetaData$core<-30/(OtoMetaData$End-OtoMetaData$Start)*100
+  #OtoMetaData$Edge1<-20/(OtoMetaData$End-OtoMetaData$Start)*100
+  #OtoMetaData$Edge2<-20/(OtoMetaData$End-OtoMetaData$Start)*100
+  
+  #was
   OtoMetaData$width<-OtoMetaData$End-OtoMetaData$Start
   OtoMetaData$coreStart<-OtoMetaData$CentreCore-15
   OtoMetaData$coreEnd<-OtoMetaData$CentreCore+15
   #OtoMetaData$coreWidth<-OtoMetaData$coreEnd-OtoMetaData$coreStart
   OtoMetaData$EndEdge1<-OtoMetaData$Start+20
   OtoMetaData$StartEdge2<-OtoMetaData$End-20
+  #
   
   AllOtoMetaData<-rbind(AllOtoMetaData,OtoMetaData)
   
@@ -48,16 +56,16 @@ for (i in 1:length(datafiList)){
   
   for (i in 1:nrow(OtoMetaData)){#For each Otolith range
     for(j in 1:nrow(OtoData)){#For each time slice
-      if(OtoData[j,1]>OtoMetaData[i,2] & OtoData[j,1]<OtoMetaData[i,6]){#Lookup which Larval ID based on the time slice 
+      if(OtoData[j,1]>OtoMetaData[i,2] & OtoData[j,1]<OtoMetaData[i,4]){#Lookup which Larval ID based on the time slice 
         OtoData[j,110]<-OtoMetaData[i,1] #Number that time slice with LarvaID
       }
-      if(OtoData[j,1]>OtoMetaData[i,8] & OtoData[j,1]<OtoMetaData[i,9]){#Name that time slice with Core (Core)
+      if(OtoData[j,1]>OtoMetaData[i,6] & OtoData[j,1]<OtoMetaData[i,7]){#Name that time slice with Core (Core)
         OtoData[j,111]<-"Core"  
       }
-      if(OtoData[j,1]>OtoMetaData[i,2] & OtoData[j,1]<OtoMetaData[i,3]){#Name that time slice with Edge1 (E1)
+      if(OtoData[j,1]>OtoMetaData[i,2] & OtoData[j,1]<OtoMetaData[i,8]){#Name that time slice with Edge1 (E1)
         OtoData[j,111]<-"E1"
       }
-      if(OtoData[j,1]>OtoMetaData[i,5] & OtoData[j,1]<OtoMetaData[i,6]){#Name that time slice with Edge2 (E2)
+      if(OtoData[j,1]>OtoMetaData[i,9] & OtoData[j,1]<OtoMetaData[i,4]){#Name that time slice with Edge2 (E2)
         OtoData[j,111]<-"E2"
       }
     }

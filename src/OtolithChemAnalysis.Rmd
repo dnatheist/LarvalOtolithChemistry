@@ -1,0 +1,132 @@
+Elemental Analysis of Larval Otoliths from  Murrumbidgee River
+==============================================================
+This is an analysis of elements from Otoliths of Larvae from various sites in the Murrumbidgee River. It uses data from laser ablation mass spectrometry of otoliths extracted from drifting Murray cod larvae in the upper Murrumbidgee River in ACT Australia.
+
+This document is produced with knitr in R studio and is done so in an effort to create reproducible analysis. While the data may not be reproducible in real life because of the vagaries of seasonality etc. research should if possible, be reproducible. Analysis of that research can and should always be completely reproducible.
+
+Ultimately: Need to decide if doing from raw (ie: incorporating math from Les' macro) or using post processed data (which would mean ongoing use of Les' macro which is MS Excel 2003 only!). 
+
+Things to do
+============
+
+-Remove data < Limit of Detection (lod)  ?
+
+-Table of elemental isotope long names to use to make better headings etc. 
+
+-Remove unwanted elements
+
+- Insert file out with means etc for each otolith region
+```{r}
+#The following 2 and 4 lines are needed if knitr is to work with ProjectTemplate.
+require(knitr)
+if (basename(getwd()) == "src") setwd("..") #needed to get knitr to work with project template
+library('ProjectTemplate') #All projectTemplates need this up front
+load.project() #All projectTemplates need this up front
+``` 
+
+```{r "Set Global Options", echo=FALSE, warning=FALSE,message=FALSE}
+##Firstly Set a few options
+library(knitr)
+options(width=200)
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+
+##Load libraries that will be used.
+require(knitr)
+require(psych)
+require(ggplot2)
+require(corrgram)
+require(plyr)
+require(lubridate)
+require(mvoutlier)
+
+
+#Test core and edge difference
+fit <- aov(Ba ~ OtoPart, data=AllOtoData)
+#layout(matrix(c(1,2,3,4),2,2)) # optional layout 
+#plot(fit) # diagnostic plots
+summary(fit) # display Type I ANOVA table
+TukeyHSD(fit) # where fit comes from aov()
+#drop1(fit,~.,test="F") # type III SS and F Tests
+print(model.tables(fit,"means"),digits=3) #report the means and the n per group
+
+boxplot(Sr ~ OtoPart, data=AllOtoData, ylab="Sr", main="Strontium and the Otolith Region")
+boxplot(Ba ~ OtoPart, data=AllOtoData, ylab="Ba", main="Barium and the Otolith Region")
+boxplot(Mn ~ OtoPart, data=AllOtoData, ylab="Mn", main="Manganese and the Otolith Region")
+boxplot(Mg ~ OtoPart, data=AllOtoData, ylab="Mg", main="Magnesium and the Otolith Region")
+boxplot(K ~ OtoPart, data=AllOtoData, ylab="K", main="Potassium and the Otolith Region")
+
+boxplot(Sr.Ca ~ OtoPart, data=AllOtoData, ylab="Sr:Ca", main="Sr:Ca Ratio and the Otolith Region")
+boxplot(Ba.Ca ~ OtoPart, data=AllOtoData, ylab="Ba:Ca", main="Ba:Ca Ratio and the Otolith Region")
+boxplot(Mn.Ca ~ OtoPart, data=AllOtoData, ylab="Mn:Ca", main="Mn:Ca Ratio and the Otolith Region")
+boxplot(Mg.Ca ~ OtoPart, data=AllOtoData, ylab="Mg:Ca", main="Mg:Ca Ratio and the Otolith Region")
+boxplot(K.Ca ~ OtoPart, data=AllOtoData, ylab="K:Ca", main="K:Ca Ratio and the Otolith Region")
+```
+
+```{r, "Calculate some parameters about each Otolith"}
+OtoSumm<-AllOtoMetaData #Make new Data frame
+#Calculate Percentage of Otolith portion used for core and edge subsampling.
+OtoSumm$core<-30/(OtoSumm$End-OtoSumm$Start)*100
+OtoSumm$Edge1<-20/(OtoSumm$End-OtoSumm$Start)*100
+OtoSumm$Edge2<-20/(OtoSumm$End-OtoSumm$Start)*100
+#Summary of Otoliths by Larva
+OS<-describeBy(OtoSumm,OtoSumm$LarvalID)
+OS
+```
+
+
+```{r "Basic Summary Statistics for Each Element"}
+
+#summary(AllOtoData)
+#describe.by(AllOtoData)
+#OCID<-describeBy(AllOtoData,AllOtoData$LarvalID)
+#OCPart<-describeBy(AllOtoData,AllOtoData$OtoPart)
+```
+
+
+Larvae Included in this Analysis
+================================
+```{r, "Output Summary Stats and plots"}
+
+unique(AllOtoData$LarvalID)
+
+#Basic Summary Statistics for Each Otolith
+
+describeBy(AllOtoData, AllOtoData$LarvalID)
+```
+
+```{r,"Plot for Each Element with Anova" }
+#so this is no sense at the moment as it plots all the larvae in together over time....
+for (k in 3:65){#For each element
+  plot(AllOtoData[,1],AllOtoData[,k],xlab= "Time (seconds)",ylab=colnames(AllOtoData)[k])
+  fit<- aov((AllOtoData[,k]) ~ OtoPart, data=AllOtoData)
+  print(colnames(AllOtoData)[k])
+  print(TukeyHSD(fit))
+}
+
+```
+
+
+```{r, "Create summary stats"}
+
+  
+```
+
+```{r, "Output to a file"}
+#write.table(AllOtoData, file = "reports/testoutput.txt", append = FALSE)
+
+```
+ 
+
+Elements Included in This Analysis
+==================================
+
+In this analysis there are `r ncol(AllOtoData)` variables in the dataframe. These include Larval ID, time, Otolith Part so there are `r ncol(AllOtoData)-3` elements and ratios with Calcium analysed. They include: (`r names(AllOtoData[,2:65])`).
+
+
+Code Chunks in this Document
+============================
+
+```{r "Include Labels for all code Chunks"}
+all_labels()
+```
+
