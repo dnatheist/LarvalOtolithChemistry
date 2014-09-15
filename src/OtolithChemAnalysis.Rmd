@@ -106,16 +106,11 @@ for (k in 3:65){#For each element
 ```
 
 
-```{r, "Create summary stats"}
-
-  
-```
-
 ```{r, "Output to a file"}
 #write.table(AllOtoData, file = "reports/testoutput.txt", append = FALSE)
 
 ```
- 
+
 
 Elements Included in This Analysis
 ==================================
