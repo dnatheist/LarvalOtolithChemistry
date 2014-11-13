@@ -32,7 +32,7 @@ for (i in 1:length(datafiList)){
   #OtoMetaData$core<-30/(OtoMetaData$End-OtoMetaData$Start)*100
   #OtoMetaData$Edge1<-20/(OtoMetaData$End-OtoMetaData$Start)*100
   #OtoMetaData$Edge2<-20/(OtoMetaData$End-OtoMetaData$Start)*100
-  
+  # Need to decide what is best here.
   #was
   OtoMetaData$width<-OtoMetaData$End-OtoMetaData$Start
   OtoMetaData$coreStart<-OtoMetaData$CentreCore-15
@@ -47,12 +47,16 @@ for (i in 1:length(datafiList)){
   #```
   OtoData<-read.csv(paste("C:\\Users\\s428825\\Google Drive\\PhD Analyses\\LarvalOtolithChemistry\\data\\",(paste(x,".csv",sep="")),sep="")) # load datafile.
   
-  
+##Remove some erroneous data
+
+#Otolith 130 had errors because fluorine low warning during ablation. As a result erroneously high reading in middle of otolith. So delete those observations (from 1096 - 1120 milliseconds or so)
+B3<-B3[!(B3$Time>=1096 & B3$Time<=1120.5),]
+
   #```{r, "For Each Otolith Assign Larval ID to Times in Otolith Chemistry Data table and Core, Edge1 or Edge2"}
   
   #Assign Larval ID to Times in Otolith Chemistry Data table
-  OtoData$LarvalID      <- 0 #create a 0 variable to store Larval ID in table
-  OtoData$OtoPart      <- 0 #create a 0 variable to store Larval ID in table 
+  OtoData$LarvalID      <- 0 #create a empty variable to store Larval ID in table
+  OtoData$OtoPart      <- 0 #create a empty variable to store OtoPart in table 
   
   for (i in 1:nrow(OtoMetaData)){#For each Otolith range
     for(j in 1:nrow(OtoData)){#For each time slice
@@ -73,3 +77,19 @@ for (i in 1:length(datafiList)){
   AllOtoData<-rbind(AllOtoData,OtoData)
 }
 
+#Tidy up global environment
+
+rm(OtoData)
+rm(OtoMetaData)
+
+metafiList2<-gsub(".*/(.*)\\..*", "\\1", metafiList)
+rm(list=metafiList2)
+datafiList2 <- gsub(".*/(.*)\\..*", "\\1", datafiList)
+rm(list=datafiList2)
+
+rm(metafiDF,metafiList,metafiList2)
+rm(datafiDF,datafiList, datafiList2)
+rm(fp)
+rm(i)
+rm(j)
+rm(x)
